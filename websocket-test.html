@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ambulance WebSocket Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        #messages { 
+            border: 1px solid #ccc; 
+            padding: 10px; 
+            height: 300px; 
+            overflow-y: auto;
+            margin-bottom: 10px;
+        }
+        .message { margin: 5px 0; }
+        .received { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h2>Ambulance WebSocket Test</h2>
+    <div>
+        <button onclick="connect()">Connect</button>
+        <button onclick="disconnect()">Disconnect</button>
+    </div>
+    <div id="messages"></div>
+    <div>
+        <h3>Send Test Location Update</h3>
+        <input type="number" id="ambulanceId" placeholder="Ambulance ID" value="1">
+        <input type="number" id="latitude" placeholder="Latitude" value="35.7595" step="0.0001">
+        <input type="number" id="longitude" placeholder="Longitude" value="-5.8340" step="0.0001">
+        <button onclick="sendLocation()">Send Location</button>
+    </div>
+
+    <script>
+        let stompClient = null;
+        const messagesDiv = document.getElementById('messages');
+
+        function addMessage(message, className) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${className}`;
+            messageDiv.textContent = `${new Date().toLocaleTimeString()} - ${message}`;
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function connect() {
+            const socket = new SockJS('http://localhost:8888/ambulance-service/websocket-endpoint');
+            stompClient = Stomp.over(socket);
+            
+            // Disable debug logging
+            stompClient.debug = null;
+
+            stompClient.connect({}, 
+                function (frame) {
+                    addMessage('Connected to WebSocket', 'received');
+                    
+                    // Subscribe to the ambulance updates topic
+                    stompClient.subscribe('/topic/ambulances', function (message) {
+                        const update = JSON.parse(message.body);
+                        addMessage(`Received update for ambulance ${update.ambulanceId}: (${update.latitude}, ${update.longitude})`, 'received');
+                    });
+                },
+                function (error) {
+                    addMessage(`Connection error: ${error}`, 'error');
+                }
+            );
+        }
+
+        function disconnect() {
+            if (stompClient !== null) {
+                stompClient.disconnect();
+                stompClient = null;
+                addMessage('Disconnected from WebSocket', 'received');
+            }
+        }
+
+        function sendLocation() {
+            if (!stompClient || !stompClient.connected) {
+                addMessage('Not connected to WebSocket', 'error');
+                return;
+            }
+
+            const update = {
+                ambulanceId: parseInt(document.getElementById('ambulanceId').value),
+                latitude: parseFloat(document.getElementById('latitude').value),
+                longitude: parseFloat(document.getElementById('longitude').value),
+                timestamp: new Date().toISOString()
+            };
+
+            stompClient.send("/app/ambulances", {}, JSON.stringify(update));
+            addMessage(`Sent location update: ${JSON.stringify(update)}`, 'received');
+        }
+    </script>
+</body>
+</html>
