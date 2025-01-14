@@ -25,4 +25,4 @@ COPY . .
 ENV PORT=8000
 
 # Command to run the application
-CMD uvicorn main:app --host 0.0.0.0 --port $PORT
+CMD python -c "import os; import uvicorn; port = int(os.getenv('PORT', '8000')); uvicorn.run('main:app', host='0.0.0.0', port=port)"
