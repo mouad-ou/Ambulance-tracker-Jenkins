@@ -21,8 +21,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of the application
 COPY . .
 
-# Set environment variables
-ENV PORT=8000
+# Set memory limits
+ENV PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:512
 
 # Command to run the application
-CMD python -c "import os; import uvicorn; port = int(os.getenv('PORT', '8000')); uvicorn.run('main:app', host='0.0.0.0', port=port)"
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
