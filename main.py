@@ -23,18 +23,21 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Check for GPU availability
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print(f"Using device: {device}")
+
 # Initialize models
 try:
     print("Loading models...")
     # Load Whisper model
-    speech_model = whisper.load_model("base")
+    speech_model = whisper.load_model("base").to(device)
     
-    # Load GPT-Neo model
-    model_name = "EleutherAI/gpt-neo-1.3B"  # GPT-Neo model
+    model_name = "EleutherAI/gpt-neo-1.3B"
     tokenizer = AutoTokenizer.from_pretrained(model_name, padding_side="left")
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
-    gpt_neo_model = AutoModelForCausalLM.from_pretrained(model_name)
+    gpt_neo_model = AutoModelForCausalLM.from_pretrained(model_name).to(device)
     
     print("Models loaded successfully!")
 except Exception as e:
@@ -54,6 +57,7 @@ class Query(BaseModel):
 class HealthCheck(BaseModel):
     status: str
     models_loaded: bool
+    device: str
 
 # Helper functions
 def get_gpt_neo_response(user_input: str) -> str:
@@ -64,22 +68,27 @@ def get_gpt_neo_response(user_input: str) -> str:
         "User: {user_input}\nAssistant: "
     )
     input_text = system_prompt.format(user_input=user_input)
-    inputs = tokenizer(input_text, return_tensors="pt", padding=True, truncation=True).to(gpt_neo_model.device)
-    output = gpt_neo_model.generate(
-        inputs['input_ids'],
-        attention_mask=inputs['attention_mask'],
-        max_length=200,
-        num_return_sequences=1,
-        temperature=0.7,
-        top_p=0.9,
-        no_repeat_ngram_size=2
-    )
+    inputs = tokenizer(input_text, return_tensors="pt", padding=True, truncation=True)
+    
+    # Move inputs to GPU
+    inputs = {k: v.to(device) for k, v in inputs.items()}
+    
+    with torch.cuda.amp.autocast():  # Enable automatic mixed precision
+        output = gpt_neo_model.generate(
+            inputs['input_ids'],
+            attention_mask=inputs['attention_mask'],
+            max_length=200,
+            num_return_sequences=1,
+            temperature=0.7,
+            top_p=0.9,
+            no_repeat_ngram_size=2
+        )
+    
     response = tokenizer.decode(output[0], skip_special_tokens=True)
     return response.split("Assistant:")[-1].strip()
 
 def get_conversation_response(text: str, history: List[MessageHistory]) -> str:
     """Generate conversational response."""
-    # Create context from history
     context = "\n".join([
         f"{'User' if msg.isUser else 'Assistant'}: {msg.text}"
         for msg in history[-3:]
@@ -93,14 +102,14 @@ def get_conversation_response(text: str, history: List[MessageHistory]) -> str:
     Respond as a medical assistant. Be helpful and empathetic. Provide appropriate guidance."""
     
     response = get_gpt_neo_response(prompt)
-    
     return response
 
 @app.get("/health")
 async def health_check():
     return HealthCheck(
         status="healthy",
-        models_loaded=all([speech_model, gpt_neo_model])
+        models_loaded=all([speech_model, gpt_neo_model]),
+        device=str(device)
     )
 
 @app.post("/speech-to-text")
@@ -113,10 +122,11 @@ async def speech_to_text(audio_file: UploadFile = File(...)):
         with temp_path.open("wb") as buffer:
             shutil.copyfileobj(audio_file.file, buffer)
         
-        result = speech_model.transcribe(str(temp_path))
+        # Use GPU for inference
+        with torch.cuda.amp.autocast():
+            result = speech_model.transcribe(str(temp_path))
         
         temp_path.unlink()
-        
         return {"text": result["text"]}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -131,7 +141,12 @@ async def virtual_assistant(query: Query):
         if not current_text:
             return {"response": "Hello! I'm your medical assistant. How can I help you today?"}
         
-        response = get_gpt_neo_response(current_text)
+        # Use conversation history if available
+        if query.conversation_history:
+            response = get_conversation_response(current_text, query.conversation_history)
+        else:
+            response = get_gpt_neo_response(current_text)
+            
         return {"response": response}
     except Exception as e:
         print(f"Error in virtual assistant: {e}")
@@ -139,5 +154,5 @@ async def virtual_assistant(query: Query):
 
 # Main entry point
 if __name__ == "__main__":
-    port = int(os.getenv("PORT", 8000)) 
+    port = int(os.getenv("PORT", 8000))
     uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
