@@ -1,0 +1,45 @@
+<header>
+  <h1>Ambulance Tracker Dashboard</h1>
+</header>
+
+<div class="dashboard-container">
+  <div class="stats-container">
+    <div class="stat-card">
+      <div class="stat-icon ambulance-icon">🚑</div>
+      <div class="stat-content">
+        <h3>Available Ambulances</h3>
+        <div class="stat-value">{{availableAmbulances}}</div>
+      </div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-icon hospital-icon">🏥</div>
+      <div class="stat-content">
+        <h3>Available Hospitals</h3>
+        <div class="stat-value">{{availableHospitals}}</div>
+      </div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-icon case-icon">🔔</div>
+      <div class="stat-content">
+        <h3>Active Cases</h3>
+        <div class="stat-value">{{activeCases}}</div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="map-container">
+    <div id="map"></div>
+    <div class="map-controls">
+      <button class="map-control-btn" (click)="showAllRoutes()">Show All Routes</button>
+      <button class="map-control-btn" (click)="clearRoutes()">Clear Routes</button>
+      <button class="map-control-btn" (click)="toggleAmbulances()">
+        {{ showAmbulances ? 'Hide Ambulances' : 'Show Ambulances' }}
+      </button>
+      <div class="route-legend" *ngIf="activeRouteCount > 0">
+        <span class="legend-item">Active Routes: {{ activeRouteCount }}</span>
+      </div>
+    </div>
+  </div>
+</div>

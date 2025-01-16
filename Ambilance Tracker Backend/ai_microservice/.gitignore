@@ -1,0 +1,99 @@
+# Python and Virtual Environment
+venv/
+env/
+.venv/
+.env
+*.env
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Model and large data files
+*.pth
+*.pt
+*.model
+*.pkl
+models/
+medical_gpt_neo/
+fine_tuned_medical_model/
+
+# Temporary and system files
+temp/
+*.tmp
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+./logs/
+
+# Audio files and speech-related temp files
+temp_audio.wav
+audio_cache/
+
+# IDE and Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Machine Learning and ML tracking
+mlruns/
+wandb/
+lightning_logs/
+
+# Torch and CUDA related
+*.cu
+*.cuh
+
+# Project-specific temporary files
+speech_temp/
+checkpoints/
+*.ckpt
+
+# Sensitive or local configuration
+config.local.yml
+local_settings.py
+secrets.yml
+*.key
+
+# Testing and coverage
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+
+# Jupyter Notebooks (if used for experimentation)
+.ipynb_checkpoints/
+
+# Dependency directories
+node_modules/
+
+# Environment-specific files
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Large dataset archives
+*.zip
+*.tar
+*.gz
+
+# Audio and media files
+*.wav
+*.mp3
+*.ogg
+
+# Tensorboard logs
+runs/
+tb_logs/

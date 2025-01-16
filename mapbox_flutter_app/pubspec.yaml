@@ -1,0 +1,32 @@
+name: mapbox_flutter_app
+description: "A new Flutter project."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.5.4
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_map: ^6.1.0
+  latlong2: ^0.9.0
+  location: ^5.0.3
+  permission_handler: ^11.0.1
+  http: ^1.1.0
+  web_socket_channel: ^2.4.0
+  cupertino_icons: ^1.0.8
+  
+  # AI features dependencies
+  speech_to_text: ^6.3.0
+  path_provider: ^2.1.1
+  connectivity_plus: ^5.0.2
+  provider: ^6.1.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true

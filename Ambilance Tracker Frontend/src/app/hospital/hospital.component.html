@@ -1,0 +1,99 @@
+<header>
+  <h1>Hospital Dashboard</h1>
+</header>
+
+<div class="filters">
+  <select [(ngModel)]="selectedStatus">
+    <option value="All">Status: All</option>
+    <option value="Available">Available</option>
+    <option value="Unavailable">Unavailable</option>
+  </select>
+</div>
+
+<div class="summary-metrics">
+  <div class="metric">
+    <h3>Total Hospitals</h3>
+    <p>{{ totalHospitals }}</p>
+  </div>
+</div>
+
+<table class="hospital-table">
+  <thead>
+  <tr>
+    <th>ID</th>
+    <th>Name</th>
+    <th>Address</th>
+    <th>Specialty</th>
+    <th>Available</th>
+    <th>Actions</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr *ngFor="let hospital of hospitals">
+    <td>{{ hospital.id }}</td>
+    <td>{{ hospital.name }}</td>
+    <td>{{ hospital.address }}</td>
+    <td>{{ hospital.speciality }}</td>
+    <td class="availability" [ngClass]="{ 'yes': hospital.available, 'no': !hospital.available }">
+      {{ hospital.available ? 'Yes' : 'No' }}
+    </td>
+    <td>
+      <button class="icon-button edit" (click)="editHospital(hospital)" title="Edit">
+        <i class="fa fa-pencil-alt"></i>
+      </button>
+      <button class="icon-button delete" (click)="confirmDelete(hospital.id)" title="Delete">
+        <i class="fa fa-trash"></i>
+      </button>
+    </td>
+  </tr>
+  </tbody>
+</table>
+
+<footer class="footer">
+  <button class="add-button" (click)="showModal = true; selectedHospital = null;">Add Hospital</button>
+</footer>
+
+<div class="modal" *ngIf="showModal">
+  <div class="modal-content">
+    <h3>{{ selectedHospital ? 'Edit Hospital' : 'Add Hospital' }}</h3>
+    <form (ngSubmit)="selectedHospital ? updateHospital() : addHospital()">
+      <input
+        [(ngModel)]="formHospital.name"
+        name="name"
+        placeholder="Hospital Name"
+        required
+      />
+      <input
+        [(ngModel)]="formHospital.address"
+        name="address"
+        placeholder="Address"
+        required
+      />
+      <input
+        [(ngModel)]="formHospital.speciality"
+        name="specialty"
+        placeholder="Specialty"
+        required
+      />
+      <label>
+        <input
+          [(ngModel)]="formHospital.available"
+          name="available"
+          type="checkbox"
+        />
+        Available
+      </label>
+      <button type="submit">{{ selectedHospital ? 'Update' : 'Add' }}</button>
+      <button type="button" (click)="closeModal()">Cancel</button>
+    </form>
+  </div>
+</div>
+
+<div class="modal" *ngIf="confirmDeleteId !== null">
+  <div class="modal-content">
+    <h3>Confirm Deletion</h3>
+    <p>Are you sure you want to delete this hospital?</p>
+    <button (click)="deleteHospital()">Yes</button>
+    <button (click)="confirmDeleteId = null">No</button>
+  </div>
+</div>

@@ -1,0 +1,142 @@
+<div class="page-container">
+  <div class="table-section">
+    <header>
+      <h1>Ambulance Management</h1>
+    </header>
+
+    <div class="filters">
+      <select [(ngModel)]="selectedStatus">
+        <option value="All">Status: All</option>
+        <option value="Available">Available</option>
+        <option value="Unavailable">Unavailable</option>
+      </select>
+    </div>
+
+    <div class="summary-metrics">
+      <div class="metric">
+        <h3>Total Ambulances</h3>
+        <p>{{ totalAmbulances }}</p>
+      </div>
+      <div class="metric available">
+        <h3>Available</h3>
+        <p>{{ availableAmbulances }}</p>
+      </div>
+    </div>
+
+    <table class="ambulance-table">
+      <thead>
+      <tr>
+        <th>ID</th>
+        <th>Driver Name</th>
+        <th>Available</th>
+        <th>Location</th>
+        <th>Actions</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr *ngFor="let ambulance of filteredAmbulances">
+        <td>{{ ambulance.id }}</td>
+        <td>{{ ambulance.driverName }}</td>
+        <td class="availability" [ngClass]="{ 'yes': ambulance.available, 'no': !ambulance.available }">
+          {{ ambulance.available ? 'Yes' : 'No' }}
+        </td>
+        <td class="location-cell">
+          <span class="location-value">{{ ambulance.latitude | number:'1.6' }}, {{ ambulance.longitude | number:'1.6' }}</span>
+        </td>
+        <td>
+          <button class="icon-button edit" (click)="startUpdate(ambulance)" title="Edit">
+            <i class="fa fa-pencil-alt"></i>
+          </button>
+          <button class="icon-button delete" (click)="confirmDelete(ambulance.id)" title="Delete">
+            <i class="fa fa-trash"></i>
+          </button>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="map-section">
+    <div id="ambulance-map" class="map-container"></div>
+  </div>
+</div>
+
+<div class="modal" *ngIf="showModal">
+  <div class="modal-content">
+    <h3 *ngIf="updateAmbulance">Edit Ambulance</h3>
+    <h3 *ngIf="!updateAmbulance">Add Ambulance</h3>
+    <form (ngSubmit)="updateAmbulance ? updateExistingAmbulance() : addAmbulance()">
+      <input
+        [(ngModel)]="newAmbulance.driverName"
+        *ngIf="!updateAmbulance"
+        name="driverName"
+        placeholder="Driver Name"
+        required
+      />
+      <input
+        [(ngModel)]="updateAmbulance.driverName"
+        *ngIf="updateAmbulance"
+        name="driverName"
+        placeholder="Driver Name"
+        required
+      />
+
+      <input
+        [(ngModel)]="newAmbulance.latitude"
+        *ngIf="!updateAmbulance"
+        name="latitude"
+        placeholder="Latitude"
+        required
+        type="number"
+      />
+      <input
+        [(ngModel)]="updateAmbulance.latitude"
+        *ngIf="updateAmbulance"
+        name="latitude"
+        placeholder="Latitude"
+        required
+        type="number"
+      />
+
+      <input
+        [(ngModel)]="newAmbulance.longitude"
+        *ngIf="!updateAmbulance"
+        name="longitude"
+        placeholder="Longitude"
+        required
+        type="number"
+      />
+      <input
+        [(ngModel)]="updateAmbulance.longitude"
+        *ngIf="updateAmbulance"
+        name="longitude"
+        placeholder="Longitude"
+        required
+        type="number"
+      />
+
+      <label *ngIf="!updateAmbulance">
+        <input [(ngModel)]="newAmbulance.available" name="available" type="checkbox" /> Available
+      </label>
+      <label *ngIf="updateAmbulance">
+        <input [(ngModel)]="updateAmbulance.available" name="available" type="checkbox" /> Available
+      </label>
+
+      <button type="submit">{{ updateAmbulance ? 'Update' : 'Add' }}</button>
+      <button type="button" (click)="closeModal()">Cancel</button>
+    </form>
+  </div>
+</div>
+
+<div class="modal" *ngIf="confirmDeleteId !== null">
+  <div class="modal-content">
+    <h3>Confirm Deletion</h3>
+    <p>Are you sure you want to delete this ambulance?</p>
+    <button (click)="deleteAmbulance()">Yes</button>
+    <button (click)="confirmDeleteId = null">No</button>
+  </div>
+</div>
+
+<footer class="footer">
+  <button class="add-button" (click)="showModal = true; updateAmbulance = null;">Add Ambulance</button>
+</footer>

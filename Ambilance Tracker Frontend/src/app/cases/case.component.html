@@ -1,0 +1,39 @@
+<div class="page-container">
+  <div class="map-section">
+    <div id="map"></div>
+    <div class="map-controls">
+      <button class="map-control-btn" (click)="showAllRoutes()">Show All Routes</button>
+      <button class="map-control-btn" (click)="clearRoutes()">Clear Routes</button>
+      <button class="map-control-btn" (click)="toggleAmbulances()">
+        {{ showAmbulances ? 'Hide Ambulances' : 'Show Ambulances' }}
+      </button>
+      <div class="route-legend" *ngIf="activeRouteCount > 0">
+        <span class="legend-item">Active Routes: {{ activeRouteCount }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="case-cards-container">
+    <div class="case-card" *ngFor="let caseItem of filteredCases">
+      <div class="case-header">
+        <h3>Case #{{ caseItem.id }}</h3>
+        <p>Specialization: {{ caseItem.specialization }}</p>
+      </div>
+      <div class="case-info">
+        <p><strong>Status:</strong> <span [class]="'status-' + caseItem.status.toLowerCase()">{{ caseItem.status }}</span></p>
+        <p><strong>Ambulance ID:</strong> {{ caseItem.assignedAmbulanceId }}</p>
+        <p><strong>Hospital ID:</strong> {{ caseItem.assignedHospitalId }}</p>
+        <p><strong>Estimated Duration:</strong> {{ caseItem.estimatedDuration }} minutes</p>
+        <p><strong>Estimated Distance:</strong> {{ caseItem.estimatedDistance }} km</p>
+        <p><strong>Real Duration:</strong> {{ caseItem.realDuration || 'N/A' }} minutes</p>
+        <p><strong>Created At:</strong> {{ caseItem.createdAt }}</p>
+      </div>
+      <div class="case-actions">
+        <button class="action-btn show-route" (click)="toggleRoute(caseItem)" [class.active]="isRouteActive(caseItem.id)">
+          {{ isRouteActive(caseItem.id) ? 'Hide Route' : 'Show Route' }}
+        </button>
+        <button class="action-btn remove" (click)="removeCase(caseItem.id)">Remove</button>
+      </div>
+    </div>
+  </div>
+</div>
